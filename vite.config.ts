@@ -10,6 +10,5 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/setupTests.ts",
   },
-    base: '/react-github-action/'
-
+  base: "/react-github-action/",
 });
