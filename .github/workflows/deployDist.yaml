@@ -1,11 +1,18 @@
-name: GithubActions
+name: Deploy React to GitHub Pages
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+    paths-ignore:
+      - ".github/workflows/*"
+      - "README.md"
+  workflow_dispatch:
 
 jobs:
-  greet:
+  test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -13,11 +20,8 @@ jobs:
       - name: Install Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "yarn" 
-
-      - name: Verify Node.js installation
-        run: node -v
+          node-version: 20
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -25,5 +29,39 @@ jobs:
       - name: Run tests
         run: yarn test
 
-      - name: Greet the user
-        run: echo "Hello, $(whoami)! Welcome to the React GitHub Action project 🚀"
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build project
+        run: yarn build
+
+      - name: Upload dist artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
